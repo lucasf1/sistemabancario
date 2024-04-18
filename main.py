@@ -24,7 +24,13 @@ while True:
     elif opcao == 2:
         pass
     elif opcao == 3:
-        pass
+        print("Extrato:")
+        if len(movimentacoes) > 0:
+            for movimentacao in movimentacoes:
+                print(movimentacao)
+        else:
+            print("Nenhuma transação realizada.")
+        print(f"Saldo: R${saldo:.2f}")
     elif opcao == 4:
         print('Agradecemos a preferência. Até a próxima!')
         break
