@@ -7,11 +7,20 @@ menu = """
     4 - Para Sair
 """
 
+saldo = 0
+movimentacoes = []
+
 while True:
     opcao = int(input(menu))
 
     if opcao == 1:
-        pass
+        valor_deposito = float(input("Digite o valor do depósito: "))
+        if valor_deposito > 0:
+            saldo += valor_deposito
+            print("Depósito realizado com sucesso!")
+            movimentacoes.append(f"Depósito: R${valor_deposito:.2f}")
+        else:
+            print("Valor inválido. Deve ser maior que zero.")
     elif opcao == 2:
         pass
     elif opcao == 3:
