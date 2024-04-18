@@ -9,6 +9,8 @@ menu = """
 
 saldo = 0
 movimentacoes = []
+qtde_saques = 0
+limite_saque = 5000
 
 while True:
     opcao = int(input(menu))
@@ -22,7 +24,30 @@ while True:
         else:
             print("Valor inválido. Deve ser maior que zero.")
     elif opcao == 2:
-        pass
+        valor_saque = float(input("Digite o valor do saque: "))
+
+        if valor_saque <= 0:
+            print("O valor do saque deve ser positivo.")
+            continue
+
+        if valor_saque > 500:
+            print("O valor do saque deve ser menor ou igual a R$500,00.")
+            continue
+
+        if qtde_saques >= 3:
+            print("Você atingiu o limite de saques diários.")
+            continue
+
+        if valor_saque > saldo:
+            print(
+                "O valor do saque deve ser menor ou igual ao saldo disponível."
+                f"Saldo disponível: R${saldo:.2f}")
+            continue
+
+        saldo -= valor_saque
+        qtde_saques += 1
+        movimentacoes.append(f"Saque: R${valor_saque:.2f}")
+
     elif opcao == 3:
         print("Extrato:")
         if len(movimentacoes) > 0:
