@@ -27,7 +27,7 @@ def criar_conta(contas, clientes, sequencial):
     cpf_cliente = cpf_cliente.replace(".", "").replace("-", "")
     cliente = buscar_cliente(clientes, cpf_cliente)
     if not cliente:
-        print(f'Cliente com cpf: {cpf_cliente} não encontrado!')
+        print(f'\nERRO: Cliente com cpf: {cpf_cliente} não encontrado!')
         return
 
     conta['cliente'] = cliente
@@ -52,21 +52,20 @@ def listar_contas(contas):
                 f"Agencia: {conta['agencia']} - Número: {conta['numero']} - Cliente: {conta['cliente']['nome']}"
             )
     else:
-        print("Não há contas cadastradas!")
+        print("\nERRO: Não há contas cadastradas!")
 
 
 def criar_cliente(clientes):
     cliente = dict()
-    cliente['nome'] = input("Digite o nome do cliente: ")
-
     cpf = input("Digite o CPF do cliente: ")
     cpf = cpf.replace(".", "").replace("-", "")
     cliente['cpf'] = cpf
     for cliente_existente in clientes:
         if cliente['cpf'] == cliente_existente['cpf']:
-            print("Cliente já cadastrado anteriormente! ")
+            print("\nERRO: Cliente já cadastrado anteriormente! ")
             return
-
+            
+    cliente['nome'] = input("Digite o nome do cliente: ")
     cliente['data_de_nascimento'] = input(
         "Digite a data de nascimento do cliente: ")
 
@@ -87,29 +86,49 @@ def listar_clientes(clientes):
         for cliente in clientes:
             print(f"Nome: {cliente['nome']} - CPF: {cliente['cpf']}")
     else:
-        print("Não há clientes cadastrados!")
+        print("\nERRO: Não há clientes cadastrados!")
 
 
 def saque(*, saldo, valor, extrato, limite, numero_saques, limite_saques):
-    saldo -= valor
-    extrato.append(f"Saque: R${valor:.2f}")
-    return saldo, extrato
+
+    if valor <= 0:
+        print("\nERRO: O valor do saque deve ser positivo.")
+    elif valor > limite:
+        print("\nERRO: O valor do saque deve ser menor ou igual a R$500,00.")
+    elif numero_saques >= limite_saques:
+        print("\nERRO: Você atingiu o limite de saques diários.")
+    elif valor > saldo:
+        print(
+            f"\nERRO: O valor do saque deve ser menor ou igual ao saldo disponível. Saldo disponível: R${saldo:.2f}"
+        )
+    else:
+        saldo -= valor
+        print("\nSaque realizado com sucesso!")
+        extrato.append(f" - Saque: R${valor:.2f}")
+        numero_saques += 1
+
+    return saldo, extrato, numero_saques
 
 
 def deposito(saldo, valor, extrato):
-    saldo += valor
-    print("Depósito realizado com sucesso!")
-    extrato.append(f"Depósito: R${valor:.2f}")
+
+    if valor > 0:
+        saldo += valor
+        print("\nDepósito realizado com sucesso!")
+        extrato.append(f" - Depósito: R${valor:.2f}")
+    else:
+        print("\nERRO: Valor inválido. Deve ser maior que zero.")
+
     return saldo, extrato
 
 
-def extrato(saldo, *, extrato):
+def extrato(saldo, /, *, extrato):
     print("Extrato:")
     if len(extrato) > 0:
         for movimentacao in extrato:
             print(movimentacao)
     else:
-        print("Nenhuma transação realizada.")
+        print("\nERRO: Nenhuma transação realizada.")
     print(f"Saldo: R${saldo:.2f}")
 
 
@@ -118,7 +137,8 @@ def main():
     saldo = 0
     movimentacoes = []
     qtde_saques = 0
-    limite_saque = 5000
+    LIMITE_VALOR_SAQUE = 500
+    LIMITE_QTDE_SAQUES = 3
 
     lista_clientes = []
     lista_contas = []
@@ -130,39 +150,20 @@ def main():
 
         if opcao == 1:
             valor_deposito = float(input("Digite o valor do depósito: "))
-            if valor_deposito > 0:
-                saldo, movimentacoes = deposito(saldo, valor_deposito,
-                                                movimentacoes)
-            else:
-                print("Valor inválido. Deve ser maior que zero.")
+
+            saldo, movimentacoes = deposito(saldo, valor_deposito,
+                                            movimentacoes)
+
         elif opcao == 2:
             valor_saque = float(input("Digite o valor do saque: "))
 
-            if valor_saque <= 0:
-                print("O valor do saque deve ser positivo.")
-                continue
-
-            if valor_saque > 500:
-                print("O valor do saque deve ser menor ou igual a R$500,00.")
-                continue
-
-            if qtde_saques >= 3:
-                print("Você atingiu o limite de saques diários.")
-                continue
-
-            if valor_saque > saldo:
-                print(
-                    "O valor do saque deve ser menor ou igual ao saldo disponível."
-                    f"Saldo disponível: R${saldo:.2f}")
-                continue
-
-            saldo, movimentacoes = saque(saldo=saldo,
-                                         valor=valor_saque,
-                                         extrato=movimentacoes,
-                                         limite=500,
-                                         numero_saques=qtde_saques,
-                                         limite_saques=3)
-            qtde_saques += 1
+            saldo, movimentacoes, qtde_saques = saque(
+                saldo=saldo,
+                valor=valor_saque,
+                extrato=movimentacoes,
+                limite=LIMITE_VALOR_SAQUE,
+                numero_saques=qtde_saques,
+                limite_saques=LIMITE_QTDE_SAQUES)
 
         elif opcao == 3:
             extrato(saldo, extrato=movimentacoes)
@@ -189,7 +190,7 @@ def main():
             break
 
         else:
-            print('Opção inválida. Tente novamente.')
+            print('\nERRO: Opção inválida. Tente novamente.')
             continue
 
 
