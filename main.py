@@ -1,29 +1,23 @@
-menu = """
-    Digite o número da opção desejada:
-    
-    1 - Para Depositar
-    2 - Para Sacar
-    3 - Para Extrato    
-    4 - Para criar um novo cliente
-    5 - Para listar os clientes
-    6 - Para criar uma conta corrente
-    7 - Para listar as contas corrente
-    8 - Para Sair
-    
-"""
+def mostrar_menu():
+    menu = """
+        Digite o número da opção desejada:
 
-saldo = 0
-movimentacoes = []
-qtde_saques = 0
-limite_saque = 5000
+        1 - Para Depositar
+        2 - Para Sacar
+        3 - Para Extrato    
+        4 - Para criar um novo cliente
+        5 - Para listar os clientes
+        6 - Para criar uma conta corrente
+        7 - Para listar as contas corrente
+        8 - Para Sair
 
-lista_clientes = []
-lista_contas = []
-conta_seq = 1
+    """
+
+    print(menu)
 
 
 def criar_conta(contas, clientes, sequencial):
-    print("Criando uma nova conta corrente...")
+    print("\nCriando uma nova conta corrente...")
 
     conta = dict()
     conta['agencia'] = '0001'
@@ -38,7 +32,7 @@ def criar_conta(contas, clientes, sequencial):
 
     conta['cliente'] = cliente
 
-    print(f"Conta {sequencial} criada com sucesso!")
+    print(f"\nConta {sequencial} criada com sucesso!")
     contas.append(conta)
 
 
@@ -51,6 +45,7 @@ def buscar_cliente(clientes, cpf_cliente):
 
 
 def listar_contas(contas):
+    print()
     if len(contas) > 0:
         for conta in contas:
             print(
@@ -83,10 +78,11 @@ def criar_cliente(clientes):
     cliente['endereco'] = f"{logradouro}, {numero}, {cidade}/{uf}"
 
     clientes.append(cliente)
-    print("Cliente cadastrado com sucesso!")
+    print(f"\nCliente {cliente['nome']} cadastrado com sucesso!")
 
 
 def listar_clientes(clientes):
+    print()
     if len(clientes) > 0:
         for cliente in clientes:
             print(f"Nome: {cliente['nome']} - CPF: {cliente['cpf']}")
@@ -117,69 +113,85 @@ def extrato(saldo, *, extrato):
     print(f"Saldo: R${saldo:.2f}")
 
 
-while True:
-    opcao = int(input(menu))
+def main():
 
-    if opcao == 1:
-        valor_deposito = float(input("Digite o valor do depósito: "))
-        if valor_deposito > 0:
-            saldo, movimentacoes = deposito(saldo, valor_deposito,
-                                            movimentacoes)
+    saldo = 0
+    movimentacoes = []
+    qtde_saques = 0
+    limite_saque = 5000
+
+    lista_clientes = []
+    lista_contas = []
+    conta_seq = 1
+
+    while True:
+        mostrar_menu()
+        opcao = int(input("Opção desejada:"))
+
+        if opcao == 1:
+            valor_deposito = float(input("Digite o valor do depósito: "))
+            if valor_deposito > 0:
+                saldo, movimentacoes = deposito(saldo, valor_deposito,
+                                                movimentacoes)
+            else:
+                print("Valor inválido. Deve ser maior que zero.")
+        elif opcao == 2:
+            valor_saque = float(input("Digite o valor do saque: "))
+
+            if valor_saque <= 0:
+                print("O valor do saque deve ser positivo.")
+                continue
+
+            if valor_saque > 500:
+                print("O valor do saque deve ser menor ou igual a R$500,00.")
+                continue
+
+            if qtde_saques >= 3:
+                print("Você atingiu o limite de saques diários.")
+                continue
+
+            if valor_saque > saldo:
+                print(
+                    "O valor do saque deve ser menor ou igual ao saldo disponível."
+                    f"Saldo disponível: R${saldo:.2f}")
+                continue
+
+            saldo, movimentacoes = saque(saldo=saldo,
+                                         valor=valor_saque,
+                                         extrato=movimentacoes,
+                                         limite=500,
+                                         numero_saques=qtde_saques,
+                                         limite_saques=3)
+            qtde_saques += 1
+
+        elif opcao == 3:
+            extrato(saldo, extrato=movimentacoes)
+            continue
+
+        elif opcao == 4:
+            criar_cliente(lista_clientes)
+            continue
+
+        elif opcao == 5:
+            listar_clientes(lista_clientes)
+            continue
+
+        elif opcao == 6:
+            criar_conta(lista_contas, lista_clientes, conta_seq)
+            conta_seq += 1
+            continue
+        elif opcao == 7:
+            listar_contas(lista_contas)
+            continue
+
+        elif opcao == 8:
+            print('Agradecemos a preferência. Até a próxima!')
+            break
+
         else:
-            print("Valor inválido. Deve ser maior que zero.")
-    elif opcao == 2:
-        valor_saque = float(input("Digite o valor do saque: "))
-
-        if valor_saque <= 0:
-            print("O valor do saque deve ser positivo.")
+            print('Opção inválida. Tente novamente.')
             continue
 
-        if valor_saque > 500:
-            print("O valor do saque deve ser menor ou igual a R$500,00.")
-            continue
 
-        if qtde_saques >= 3:
-            print("Você atingiu o limite de saques diários.")
-            continue
-
-        if valor_saque > saldo:
-            print(
-                "O valor do saque deve ser menor ou igual ao saldo disponível."
-                f"Saldo disponível: R${saldo:.2f}")
-            continue
-
-        saldo, movimentacoes = saque(saldo=saldo,
-                                     valor=valor_saque,
-                                     extrato=movimentacoes,
-                                     limite=500,
-                                     numero_saques=qtde_saques,
-                                     limite_saques=3)
-        qtde_saques += 1
-
-    elif opcao == 3:
-        extrato(saldo, extrato=movimentacoes)
-        continue
-
-    elif opcao == 4:
-        criar_cliente(lista_clientes)
-        continue
-
-    elif opcao == 5:
-        listar_clientes(lista_clientes)
-        continue
-
-    elif opcao == 6:
-        criar_conta(lista_contas, lista_clientes, conta_seq)
-        conta_seq += 1
-        continue
-    elif opcao == 7:
-        listar_contas(lista_contas)
-        continue
-
-    elif opcao == 8:
-        print('Agradecemos a preferência. Até a próxima!')
-        break
-
-    else:
-        print('Opção inválida. Tente novamente.')
-        continue
+if __name__ == "__main__":
+    main()
