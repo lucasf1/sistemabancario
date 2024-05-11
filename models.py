@@ -75,9 +75,13 @@ class Deposito(Transacao):
 
 class Saque(Transacao):
 
-    def __init__(self, valor) -> None:
+    def __init__(self, valor):
         super().__init__()
         self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
 
     def registrar(self, conta):
         sucesso_transacao = conta.sacar(self.valor)
