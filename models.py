@@ -5,6 +5,7 @@ from datetime import datetime
 class Cliente:
 
     def __init__(self, endereco) -> None:
+
         self._endereco = endereco
         self._contas = []
 
@@ -14,14 +15,27 @@ class Cliente:
     def adicionar_conta(self, conta):
         self._contas.append(conta)
 
+    @property
+    def contas(self):
+        return self._contas
+
 
 class PessoaFisica(Cliente):
 
     def __init__(self, endereco, cpf, nome, data_nascimento) -> None:
+
         super().__init__(endereco)
         self._cpf = cpf
         self._nome = nome
         self._data_nascimento = data_nascimento
+
+    @property
+    def nome(self):
+        return self._nome
+
+    @property
+    def cpf(self):
+        return self._cpf
 
 
 class Historico:
@@ -34,6 +48,7 @@ class Historico:
         return self._transacoes
 
     def adicionar_transacao(self, transacao):
+
         self._transacoes.append({
             "tipo":
             transacao.__class__.__name__,
@@ -59,6 +74,7 @@ class Transacao(ABC):
 class Deposito(Transacao):
 
     def __init__(self, valor) -> None:
+
         super().__init__()
         self._valor = valor
 
@@ -76,6 +92,7 @@ class Deposito(Transacao):
 class Saque(Transacao):
 
     def __init__(self, valor):
+
         super().__init__()
         self._valor = valor
 
@@ -93,6 +110,7 @@ class Saque(Transacao):
 class Conta:
 
     def __init__(self, numero, cliente) -> None:
+
         self._saldo = 0
         self._numero = numero
         self._agencia = '0001'
@@ -140,6 +158,7 @@ class Conta:
         return False
 
     def depositar(self, valor):
+
         if valor > 0:
             self._saldo += valor
             print("\nDepósito realizado com sucesso!")
@@ -152,6 +171,7 @@ class Conta:
 class ContaCorrente(Conta):
 
     def __init__(self, numero, cliente, limite=500, limite_saques=3) -> None:
+
         super().__init__(numero, cliente)
         self._limite = limite
         self._limite_saque = limite_saques
@@ -175,3 +195,11 @@ class ContaCorrente(Conta):
             return super().sacar(valor)
 
         return False
+
+
+    def __str__(self):
+        return f"""\
+            Agência:\t{self.agencia}
+            C/C:\t\t{self.numero}
+            Titular:\t{self.cliente.nome}
+        """
