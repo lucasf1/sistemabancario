@@ -86,12 +86,12 @@ def recuperar_conta(cliente):
         for conta in contas:
             print(conta)
 
-        conta_selecionada = input("Digite o número da conta desejada: ")
+        conta_selecionada = int(input("Digite o número da conta desejada: "))
         for conta in contas:
             if conta.numero == conta_selecionada:
                 return conta
-            else:
-                return None
+
+        return None
 
 
 def extrato(conta):
