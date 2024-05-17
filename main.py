@@ -1,4 +1,15 @@
-from models import ContaCorrente, PessoaFisica, Saque, Deposito
+from models import ContaCorrente, PessoaFisica, Saque, Deposito, ContaIterador
+from datetime import datetime
+
+
+def log_transacao(func):
+
+    def envelope(*args, **kwargs):
+        resultado = func(*args, **kwargs)
+        print(f"{datetime.now()}: {func.__name__.upper()}")
+        return resultado
+
+    return envelope
 
 
 def buscar_cliente(lista_clientes, cpf_cliente):
@@ -20,6 +31,7 @@ def listar_clientes(lista_clientes):
         print("\nERRO: Não há clientes cadastrados!")
 
 
+@log_transacao
 def criar_cliente(lista_clientes):
 
     cpf_cliente = input("Digite o CPF do cliente (somente números): ")
@@ -51,16 +63,15 @@ def listar_contas(cliente):
 
     print()
     if cliente.contas:
-        for conta in cliente.contas:
-            print(
-                f"Agencia: {conta.agencia} - Número: {conta.numero} - Cliente: {conta.cliente.nome}"
-            )
+        for conta in ContaIterador(cliente.contas):
+            print(conta)
         return cliente.contas
     else:
         print("\nERRO: Não há contas cadastradas!")
         return None
 
 
+@log_transacao
 def criar_conta(lista_contas, lista_clientes, sequencial):
 
     print("\nCriando uma nova conta corrente...")
@@ -80,12 +91,10 @@ def criar_conta(lista_contas, lista_clientes, sequencial):
 
 def recuperar_conta(cliente):
 
+    print(f'Contas do cliente {cliente.nome}:')
     contas = listar_contas(cliente)
+    
     if contas:
-        print(f'Contas do cliente {cliente.nome}:')
-        for conta in contas:
-            print(conta)
-
         conta_selecionada = int(input("Digite o número da conta desejada: "))
         for conta in contas:
             if conta.numero == conta_selecionada:
@@ -99,13 +108,64 @@ def extrato(conta):
 
     extrato = ""
     if conta.historico.transacoes:
-        for transacao in conta.historico.transacoes:
-            extrato += f"\n{transacao['tipo']}:\n\tR$ {transacao['valor']:.2f}"
+        for transacao in conta.historico.gerar_relatorio():
+            extrato += f"\n{transacao['data']}\n{transacao['tipo']}:\n\tR$ {transacao['valor']:.2f}"
     else:
         print("\nERRO: Nenhuma transação realizada.")
 
     print(extrato)
     print(f"Saldo: R${conta.saldo:.2f}")
+
+
+@log_transacao
+def depositar(lista_clientes):
+    cpf_cliente = input("Digite o CPF do cliente (somente números): ")
+    cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
+
+    if not cliente_bd:
+        print("\nERRO: Cliente não encontrado!")
+    else:
+        valor_deposito = float(input("Digite o valor do depósito: "))
+
+        conta_selecionada = recuperar_conta(cliente_bd)
+        if conta_selecionada:
+            transacao = Deposito(valor_deposito)
+            cliente_bd.realizar_transacao(conta_selecionada, transacao)
+        else:
+            print("Conta não encontrada!")
+
+
+@log_transacao
+def sacar(lista_clientes):
+    cpf_cliente = input("Digite o CPF do cliente (somente números): ")
+    cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
+
+    if not cliente_bd:
+        print("\nERRO: Cliente não encontrado!")
+    else:
+        valor_saque = float(input("Digite o valor do saque: "))
+
+        conta_selecionada = recuperar_conta(cliente_bd)
+        if conta_selecionada:
+            transacao = Saque(valor_saque)
+            cliente_bd.realizar_transacao(conta_selecionada, transacao)
+        else:
+            print("Conta não encontrada!")
+
+
+@log_transacao
+def exibir_extrato(lista_clientes):
+    cpf_cliente = input("Digite o CPF do cliente (somente números): ")
+    cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
+
+    if not cliente_bd:
+        print("\nERRO: Cliente não encontrado!")
+    else:
+        conta_selecionada = recuperar_conta(cliente_bd)
+        if conta_selecionada:
+            extrato(conta=conta_selecionada)
+        else:
+            print("Conta não encontrada!")
 
 
 def main():
@@ -136,70 +196,24 @@ def main():
         opcao = int(input("Opção desejada:"))
 
         if opcao == 1:  # Depositar
-
-            cpf_cliente = input("Digite o CPF do cliente (somente números): ")
-            cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
-
-            if not cliente_bd:
-                print("\nERRO: Cliente não encontrado!")
-            else:
-                valor_deposito = float(input("Digite o valor do depósito: "))
-
-                conta_selecionada = recuperar_conta(cliente_bd)
-                if conta_selecionada:
-                    transacao = Deposito(valor_deposito)
-                    cliente_bd.realizar_transacao(conta_selecionada, transacao)
-                else:
-                    print("Conta não encontrada!")
+            depositar(lista_clientes)
 
         elif opcao == 2:  # Sacar
-            cpf_cliente = input("Digite o CPF do cliente (somente números): ")
-            cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
-
-            if not cliente_bd:
-                print("\nERRO: Cliente não encontrado!")
-            else:
-                valor_saque = float(input("Digite o valor do saque: "))
-
-                conta_selecionada = recuperar_conta(cliente_bd)
-                if conta_selecionada:
-                    transacao = Saque(valor_saque)
-                    cliente_bd.realizar_transacao(conta_selecionada, transacao)
-                else:
-                    print("Conta não encontrada!")
-
-            continue
+            sacar(lista_clientes)
 
         elif opcao == 3:  # Extrato
-            cpf_cliente = input("Digite o CPF do cliente (somente números): ")
-            cliente_bd = buscar_cliente(lista_clientes, cpf_cliente)
-
-            if not cliente_bd:
-                print("\nERRO: Cliente não encontrado!")
-            else:
-                conta_selecionada = recuperar_conta(cliente_bd)
-                if conta_selecionada:
-                    extrato(conta=conta_selecionada)
-                else:
-                    print("Conta não encontrada!")
-            continue
-            continue
+            exibir_extrato(lista_clientes)
 
         elif opcao == 4:  # Criar um novo cliente
-
             criar_cliente(lista_clientes)
-            continue
 
         elif opcao == 5:  # Listar os clientes
-
             listar_clientes(lista_clientes)
-            continue
 
         elif opcao == 6:  # Criar uma conta corrente
 
             criar_conta(lista_contas, lista_clientes, conta_seq)
             conta_seq += 1
-            continue
 
         elif opcao == 7:  # Listar as contas corrente de um cliente
 
@@ -210,7 +224,6 @@ def main():
                 print("\nERRO: Cliente não encontrado!")
             else:
                 listar_contas(cliente_bd)
-            continue
 
         elif opcao == 8:  # Sair
             print('Agradecemos a preferência. Até a próxima!')
@@ -218,7 +231,6 @@ def main():
 
         else:  # Opção inválida
             print('\nERRO: Opção inválida. Tente novamente.')
-            continue
 
 
 if __name__ == "__main__":

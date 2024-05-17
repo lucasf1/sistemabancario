@@ -10,6 +10,10 @@ class Cliente:
         self._contas = []
 
     def realizar_transacao(self, conta, transacao):
+        if len(conta.historico.transacoes_do_dia()) >= 10:
+            print("ERRO: Limite de transações diárias atingido!")
+            return
+
         transacao.registrar(conta)
 
     def adicionar_conta(self, conta):
@@ -55,8 +59,24 @@ class Historico:
             "valor":
             transacao.valor,
             "data":
-            datetime.now().strftime("%d-%m-%Y %H:%M:%s"),
+            datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
         })
+
+    def gerar_relatorio(self, tipo_transacao=None):
+        for transacao in self._transacoes:
+            if tipo_transacao is None or transacao["tipo"].lower(
+            ) == tipo_transacao.lower():
+                yield transacao
+
+    def transacoes_do_dia(self):
+        data_atual = datetime.utcnow().date()
+        transacoes = []
+        for transacao in self._transacoes:
+            data_transacao = datetime.strptime(transacao["data"],
+                                               "%d-%m-%Y %H:%M:%S").date()
+            if data_transacao == data_atual:
+                transacoes.append(transacao)
+        return transacoes
 
 
 class Transacao(ABC):
@@ -105,6 +125,25 @@ class Saque(Transacao):
 
         if sucesso_transacao:
             conta.historico.adicionar_transacao(self)
+
+
+class ContaIterador:
+
+    def __init__(self, contas):
+        self._contas = contas
+        self._contador = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            conta = self._contas[self._contador]
+            return conta
+        except IndexError:
+            raise StopIteration
+        finally:
+            self._contador += 1
 
 
 class Conta:
@@ -195,7 +234,6 @@ class ContaCorrente(Conta):
             return super().sacar(valor)
 
         return False
-
 
     def __str__(self):
         return f"""\
