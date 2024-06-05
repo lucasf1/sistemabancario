@@ -1,13 +1,23 @@
-from models import ContaCorrente, PessoaFisica, Saque, Deposito, ContaIterador
 from datetime import datetime
+
+from models import ContaCorrente, ContaIterador, Deposito, PessoaFisica, Saque
 
 
 def log_transacao(func):
 
     def envelope(*args, **kwargs):
-        resultado = func(*args, **kwargs)
+        result = func(*args, **kwargs)
+        data_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            with open("log.txt", "a", encoding="utf-8") as f:
+                f.write(f"""
+[{data_hora}] Função '{func.__name__}' executada com argumentos
+{args} e {kwargs}. Resultado: {result}\n""")
+        except IOError as ex:
+            print(f"Erro ao acessar o arquivo: {ex}")
+
         print(f"{datetime.now()}: {func.__name__.upper()}")
-        return resultado
+        return result
 
     return envelope
 
@@ -93,7 +103,7 @@ def recuperar_conta(cliente):
 
     print(f'Contas do cliente {cliente.nome}:')
     contas = listar_contas(cliente)
-    
+
     if contas:
         conta_selecionada = int(input("Digite o número da conta desejada: "))
         for conta in contas:

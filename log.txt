@@ -1,0 +1,12 @@
+
+[2024-06-04 23:54:17] Função 'criar_cliente' executada com argumentos
+([<PessoaFisica: (111)>],) e {}. Resultado: None
+
+[2024-06-04 23:54:29] Função 'criar_conta' executada com argumentos
+([<ContaCorrente: ('0001', '1', 'Lucas')>], [<PessoaFisica: (111)>], 1) e {}. Resultado: None
+
+[2024-06-04 23:54:49] Função 'depositar' executada com argumentos
+([<PessoaFisica: (111)>],) e {}. Resultado: None
+
+[2024-06-04 23:55:12] Função 'exibir_extrato' executada com argumentos
+([<PessoaFisica: (111)>],) e {}. Resultado: None

@@ -33,6 +33,9 @@ class PessoaFisica(Cliente):
         self._nome = nome
         self._data_nascimento = data_nascimento
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: ({self.cpf})>"
+
     @property
     def nome(self):
         return self._nome
@@ -234,6 +237,9 @@ class ContaCorrente(Conta):
             return super().sacar(valor)
 
         return False
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}: ('{self.agencia}', '{self.numero}', '{self.cliente.nome}')>"
 
     def __str__(self):
         return f"""\
